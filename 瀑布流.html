@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang = "zh">
+<head>
+    <meta charset = "UTF-8">
+    <title>原生javascript 瀑布流</title>
+    <style type = "text/css">
+        body {
+            padding : 0;
+            margin  : 0;
+            }
+
+        .box {
+            position : relative;
+            }
+
+        .item {
+            width      : 250px;
+            height     : 300px;
+            background : red;
+            position: absolute;
+            font-size: 50px;
+            text-align: center;
+            }
+    </style>
+</head>
+<body>
+<div class = "box" id="box">
+    <div class = "item">1</div>
+</div>
+</body>
+<script>
+    const box = document.getElementById('box')
+
+
+    const itemWidth = 300
+	const GAP = 10
+    const COL = 3 //列数
+	// const COL = Math.floor(box.clientWidth / (itemWidth + GAP)) 或者课已根据父元素的宽度计算列数
+    const random = () =>Math.floor(Math.random() * 500 + 50)  // 生成随机高度
+    const length = 1000  // 数量
+    let arr = [] //用于记录每列的高度
+	for (let i = 0; i < length; i++) {
+		let height = random()
+        let item = document.createElement('div')
+        item.className = "item"
+        item.style.height = height + 'px'
+        if(i < COL){   // 如果i 小于列数GAP 证明是第一行
+			item.style.top = 0  //第一行的top 值肯定是 0
+            item.style.left = i * (GAP + itemWidth) + "px" //left 值用 当前下标 * (Gap间距 + itemWidth 元素的宽)
+            // i = 0  则为第一列  0 * (GAP 10 + itemWidth 300) = 0
+            // i = 1  则为第二列  1 * (GAP 10 + itemWidth 300) = 310
+            // i = 2  则为第三列  2 * (GAP 10 + itemWidth 300) = 620
+			box.appendChild(item) //将元素追加到 父元素  注意   只有追加完 页面渲染完成 才可以 获取元素的 宽高
+            arr.push(item.offsetHeight)  //将 因为 top 都是0 所以第行只需要 将 元素的高度push到 arr 中即可
+        }else{ // 如果i 大于于列数GAP 证明不是第一行
+        	let minHeight = arr[0]  //先假设最小高 是第一列
+            let index = 0 // 所以 index = 0
+            arr.forEach((item,_index) =>{ //循环找出 最小高  和它对应的下标（即列数）
+            	if(minHeight > item){
+            		minHeight = item
+                    index = _index
+                }
+            })
+			//因为我们需要将当前元素添加到最小高度的那一列
+            item.style.top = minHeight + GAP + "px" //所以当前元素top 为 最小高 + 间距
+            item.style.left = index * (GAP + itemWidth) + "px"  //当前元素的left  为 index（列数） * (Gap间距 + itemWidth 元素的宽)
+			box.appendChild(item)  //将元素追加到 父元素
+            arr[index] = arr[index] + item.offsetHeight + GAP  //更新最小列 高度  （重点 重点 重点 重要的说三遍）
+        }
+
+		//这个应该不用多说了吧
+		item.innerHTML = String(i + 1)
+        item.style.lineHeight = item.clientHeight + "px"
+
+	}
+</script>
+</html>
